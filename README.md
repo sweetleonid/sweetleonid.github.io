@@ -1,2 +1,2 @@
 # sweetleonid.github.io
-Bobrovo newq
+Bobrovo news
