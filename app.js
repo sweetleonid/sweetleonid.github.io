@@ -7,23 +7,16 @@ const categoryNames = {
     other: "Городская хроника"
 };
 
-const storedArticlesKey = "bobrovsky-phenomenon-articles";
 const seededArticles = Array.isArray(articles) ? articles : [];
-let userArticles = [];
 
-try {
-    const savedArticles = JSON.parse(localStorage.getItem(storedArticlesKey) || "[]");
-    if (Array.isArray(savedArticles)) userArticles = savedArticles;
-} catch (error) {
-    console.error("Не удалось прочитать сохранённые публикации.", error);
-}
+let activeCategory = "all";
 
 function getArticles() {
-    return [...userArticles, ...seededArticles];
+    return seededArticles;
 }
 
 function escapeHtml(value) {
-    return String(value ?? "").replace(/[&<>\"']/g, (character) => ({
+    return String(value ?? "").replace(/[&<>"']/g, (character) => ({
         "&": "&amp;",
         "<": "&lt;",
         ">": "&gt;",
@@ -38,13 +31,13 @@ function getExcerpt(content, limit = 155) {
 }
 
 function renderHome() {
-    const allArticles = getArticles();
+    const allArticles = getArticles().filter((article) =>
+        activeCategory === "all" || article.category === activeCategory
+    );
     const grid = document.getElementById("articles-grid");
 
-    if (!grid) return;
-
     if (!allArticles.length) {
-        grid.innerHTML = '<p class="empty-state">Пока нет публикаций. Предложите первую новость для хроники.</p>';
+        grid.innerHTML = '<p class="empty-state">В этой рубрике пока нет публикаций.</p>';
         return;
     }
 
@@ -57,13 +50,32 @@ function renderHome() {
         </article>`).join("");
 }
 
+function renderCategories() {
+    const categories = [...new Set(getArticles().map((article) => article.category))]
+        .filter((category) => categoryNames[category]);
+    const categoryNav = document.getElementById("category-nav");
+
+    categoryNav.innerHTML = categories.map((category) => `
+        <button type="button" class="nav-link" data-category="${escapeHtml(category)}" aria-pressed="false">
+            ${escapeHtml(categoryNames[category])}
+        </button>`).join("");
+}
+
+function selectCategory(category) {
+        activeCategory = category;
+        document.querySelectorAll("[data-category]").forEach((button) => {
+            const isActive = button.dataset.category === activeCategory;
+            button.classList.toggle("active", isActive);
+            button.setAttribute("aria-pressed", String(isActive));
+        });
+        renderHome();
+}
+
 function openArticle(articleId) {
     const article = getArticles().find((item) => String(item.id) === String(articleId));
     if (!article) return;
 
     const articleContainer = document.getElementById("article-full");
-    if (!articleContainer) return;
-
     articleContainer.innerHTML = `
         <div class="article-category">${escapeHtml(categoryNames[article.category] || categoryNames.other)}</div>
         <h1>${escapeHtml(article.title)}</h1>
@@ -80,67 +92,35 @@ function showPage(pageName) {
     document.querySelectorAll(".page").forEach((page) => page.classList.remove("active"));
     const page = document.getElementById(`${pageName}-page`);
     if (page) page.classList.add("active");
-
-    document.querySelectorAll(".nav-link").forEach((link) => {
-        link.classList.toggle("active", pageName === "home" && link.textContent.trim() === "Главное");
-    });
     window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 document.addEventListener("click", (event) => {
-    const pageLink = event.target.closest("[data-page]");
+    const target = event.target instanceof Element ? event.target : null;
+    const pageLink = target?.closest("[data-page]");
     if (pageLink) {
         event.preventDefault();
+        if (pageLink.dataset.page === "home") selectCategory("all");
         showPage(pageLink.dataset.page);
         return;
     }
-    const articleCard = event.target.closest("[data-article-id]");
+    const categoryButton = target?.closest("[data-category]");
+    if (categoryButton) {
+        selectCategory(categoryButton.dataset.category);
+        showPage("home");
+        return;
+    }
+    const articleCard = target?.closest("[data-article-id]");
     if (articleCard) openArticle(articleCard.dataset.articleId);
 });
 
 document.addEventListener("keydown", (event) => {
-    if ((event.key === "Enter" || event.key === " ") && event.target.matches("[data-article-id]")) {
+    if ((event.key === "Enter" || event.key === " ") && event.target instanceof Element &&
+        event.target.matches("[data-article-id]")) {
         event.preventDefault();
         openArticle(event.target.dataset.articleId);
     }
 });
 
-function initializeApp() {
-    renderHome();
-
-    const form = document.getElementById("article-form");
-    if (!form) return;
-
-    form.addEventListener("submit", (event) => {
-        event.preventDefault();
-        const newArticle = {
-            id: `user-${Date.now()}`,
-            title: document.getElementById("title").value.trim(),
-            emoji: "📰",
-            date: document.getElementById("date").value.trim() || "Дата уточняется",
-            category: document.getElementById("category").value,
-            content: document.getElementById("content").value.trim(),
-            consequences: document.getElementById("consequences").value.trim()
-        };
-        if (!newArticle.title || !newArticle.content) return;
-
-        userArticles.unshift(newArticle);
-        try {
-            localStorage.setItem(storedArticlesKey, JSON.stringify(userArticles));
-        } catch (error) {
-            userArticles.shift();
-            console.error("Не удалось сохранить публикацию в этом браузере.", error);
-            window.alert("Не удалось сохранить публикацию. Проверьте настройки хранилища браузера и попробуйте ещё раз.");
-            return;
-        }
-        form.reset();
-        renderHome();
-        showPage("home");
-    });
-}
-
-if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", initializeApp);
-} else {
-    initializeApp();
-}
+renderCategories();
+renderHome();

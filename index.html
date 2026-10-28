@@ -33,12 +33,8 @@
                 </div>
             </div>
             <nav class="main-nav" aria-label="Главная навигация">
-                <a href="#" class="nav-link active" data-page="home">Главное</a>
-                <a href="#" class="nav-link" data-page="home">Город</a>
-                <a href="#" class="nav-link" data-page="home">Происшествия</a>
-                <a href="#" class="nav-link" data-page="home">Общество</a>
-                <a href="#" class="nav-link" data-page="home">Архив</a>
-                <a href="#" class="nav-link nav-submit" data-page="add">Предложить новость <span aria-hidden="true">＋</span></a>
+                <button type="button" class="nav-link active" data-category="all" aria-pressed="true">Главное</button>
+                <div class="category-nav" id="category-nav"></div>
             </nav>
         </div>
     </header>
@@ -65,56 +61,6 @@
             <article class="article-full" id="article-full"></article>
         </section>
 
-        <section id="add-page" class="page">
-            <div class="form-layout">
-                <div class="add-form">
-                    <div class="section-kicker"><span></span> УЧАСТВУЙТЕ В ХРОНИКЕ</div>
-                    <h1>Предложить новость</h1>
-                    <p class="form-hint">Предложите событие хроники Боброво.</p>
-
-                    <form id="article-form">
-                        <div class="form-group">
-                            <label for="title">Заголовок</label>
-                            <input type="text" id="title" placeholder="Например: В центре города замечен говорящий фонарь" required>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="date">Дата события</label>
-                                <input type="text" id="date" placeholder="Например: 15 июня">
-                            </div>
-                            <div class="form-group">
-                                <label for="category">Рубрика</label>
-                                <select id="category">
-                                    <option value="epidemic">Происшествия / аномалии</option>
-                                    <option value="creature">Животный мир</option>
-                                    <option value="natural">Погода и природа</option>
-                                    <option value="social">Город и общество</option>
-                                    <option value="tech">Технологии</option>
-                                    <option value="other">Другое</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="content">Что произошло?</label>
-                            <textarea id="content" rows="8" placeholder="Опишите событие в новостном стиле." required></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label for="consequences">Чем всё закончилось?</label>
-                            <textarea id="consequences" rows="4" placeholder="Последствия, реакция жителей или комментарий редакции"></textarea>
-                        </div>
-                        <button type="submit" class="btn-submit">Отправить в редакцию <span aria-hidden="true">→</span></button>
-                        <p class="form-disclaimer">Публикации создаются для освещения реальной ситуации.</p>
-                    </form>
-                </div>
-                <aside class="form-aside">
-                    <span class="aside-number">01</span>
-                    <h2>Редакционная памятка</h2>
-                    <p>Хорошая новость начинается с факта, продолжается деталями и заканчивается чем-нибудь совершенно бобровским.</p>
-                    <div class="aside-divider"></div>
-                    <p class="aside-small"></p>
-                </aside>
-            </div>
-        </section>
     </main>
 
     <footer>
