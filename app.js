@@ -36,6 +36,8 @@ function renderHome() {
     );
     const grid = document.getElementById("articles-grid");
 
+    if (!grid) return;
+
     if (!allArticles.length) {
         grid.innerHTML = '<p class="empty-state">В этой рубрике пока нет публикаций.</p>';
         return;
@@ -55,20 +57,29 @@ function renderCategories() {
         .filter((category) => categoryNames[category]);
     const categoryNav = document.getElementById("category-nav");
 
+    if (!categoryNav) return;
+
     categoryNav.innerHTML = categories.map((category) => `
         <button type="button" class="nav-link" data-category="${escapeHtml(category)}" aria-pressed="false">
             ${escapeHtml(categoryNames[category])}
         </button>`).join("");
+
+    const categoryButtons = document.querySelectorAll("[data-category]");
+    categoryButtons.forEach((button) => {
+        const isActive = button.dataset.category === activeCategory;
+        button.classList.toggle("active", isActive);
+        button.setAttribute("aria-pressed", String(isActive));
+    });
 }
 
 function selectCategory(category) {
-        activeCategory = category;
-        document.querySelectorAll("[data-category]").forEach((button) => {
-            const isActive = button.dataset.category === activeCategory;
-            button.classList.toggle("active", isActive);
-            button.setAttribute("aria-pressed", String(isActive));
-        });
-        renderHome();
+    activeCategory = category;
+    document.querySelectorAll("[data-category]").forEach((button) => {
+        const isActive = button.dataset.category === activeCategory;
+        button.classList.toggle("active", isActive);
+        button.setAttribute("aria-pressed", String(isActive));
+    });
+    renderHome();
 }
 
 function openArticle(articleId) {
@@ -76,6 +87,8 @@ function openArticle(articleId) {
     if (!article) return;
 
     const articleContainer = document.getElementById("article-full");
+    if (!articleContainer) return;
+
     articleContainer.innerHTML = `
         <div class="article-category">${escapeHtml(categoryNames[article.category] || categoryNames.other)}</div>
         <h1>${escapeHtml(article.title)}</h1>
@@ -89,6 +102,8 @@ function openArticle(articleId) {
 }
 
 function showPage(pageName) {
+    if (!pageName) return;
+
     document.querySelectorAll(".page").forEach((page) => page.classList.remove("active"));
     const page = document.getElementById(`${pageName}-page`);
     if (page) page.classList.add("active");
