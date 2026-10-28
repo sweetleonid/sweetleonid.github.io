@@ -23,7 +23,7 @@ function getArticles() {
 }
 
 function escapeHtml(value) {
-    return String(value ?? "").replace(/[&<>"']/g, (character) => ({
+    return String(value ?? "").replace(/[&<>\"']/g, (character) => ({
         "&": "&amp;",
         "<": "&lt;",
         ">": "&gt;",
@@ -40,6 +40,8 @@ function getExcerpt(content, limit = 155) {
 function renderHome() {
     const allArticles = getArticles();
     const grid = document.getElementById("articles-grid");
+
+    if (!grid) return;
 
     if (!allArticles.length) {
         grid.innerHTML = '<p class="empty-state">Пока нет публикаций. Предложите первую новость для хроники.</p>';
@@ -60,6 +62,8 @@ function openArticle(articleId) {
     if (!article) return;
 
     const articleContainer = document.getElementById("article-full");
+    if (!articleContainer) return;
+
     articleContainer.innerHTML = `
         <div class="article-category">${escapeHtml(categoryNames[article.category] || categoryNames.other)}</div>
         <h1>${escapeHtml(article.title)}</h1>
@@ -101,32 +105,42 @@ document.addEventListener("keydown", (event) => {
     }
 });
 
-document.getElementById("article-form").addEventListener("submit", (event) => {
-    event.preventDefault();
-    const form = event.currentTarget;
-    const newArticle = {
-        id: `user-${Date.now()}`,
-        title: document.getElementById("title").value.trim(),
-        emoji: "📰",
-        date: document.getElementById("date").value.trim() || "Дата уточняется",
-        category: document.getElementById("category").value,
-        content: document.getElementById("content").value.trim(),
-        consequences: document.getElementById("consequences").value.trim()
-    };
-    if (!newArticle.title || !newArticle.content) return;
-
-    userArticles.unshift(newArticle);
-    try {
-        localStorage.setItem(storedArticlesKey, JSON.stringify(userArticles));
-    } catch (error) {
-        userArticles.shift();
-        console.error("Не удалось сохранить публикацию в этом браузере.", error);
-        window.alert("Не удалось сохранить публикацию. Проверьте настройки хранилища браузера и попробуйте ещё раз.");
-        return;
-    }
-    form.reset();
+function initializeApp() {
     renderHome();
-    showPage("home");
-});
 
-renderHome();
+    const form = document.getElementById("article-form");
+    if (!form) return;
+
+    form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const newArticle = {
+            id: `user-${Date.now()}`,
+            title: document.getElementById("title").value.trim(),
+            emoji: "📰",
+            date: document.getElementById("date").value.trim() || "Дата уточняется",
+            category: document.getElementById("category").value,
+            content: document.getElementById("content").value.trim(),
+            consequences: document.getElementById("consequences").value.trim()
+        };
+        if (!newArticle.title || !newArticle.content) return;
+
+        userArticles.unshift(newArticle);
+        try {
+            localStorage.setItem(storedArticlesKey, JSON.stringify(userArticles));
+        } catch (error) {
+            userArticles.shift();
+            console.error("Не удалось сохранить публикацию в этом браузере.", error);
+            window.alert("Не удалось сохранить публикацию. Проверьте настройки хранилища браузера и попробуйте ещё раз.");
+            return;
+        }
+        form.reset();
+        renderHome();
+        showPage("home");
+    });
+}
+
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initializeApp);
+} else {
+    initializeApp();
+}
