@@ -39,42 +39,20 @@ function getExcerpt(content, limit = 155) {
 
 function renderHome() {
     const allArticles = getArticles();
-    const featured = allArticles[0];
-    const featureContainer = document.getElementById("featured-article");
     const grid = document.getElementById("articles-grid");
-    const latestSection = document.querySelector(".latest-section");
 
-    if (!featured) {
-        featureContainer.innerHTML = '<p class="empty-state">Пока нет публикаций. Предложите первую новость для хроники.</p>';
-        grid.innerHTML = "";
+    if (!allArticles.length) {
+        grid.innerHTML = '<p class="empty-state">Пока нет публикаций. Предложите первую новость для хроники.</p>';
         return;
     }
 
-    featureContainer.innerHTML = `
-        <article class="featured-card" data-article-id="${escapeHtml(featured.id)}" tabindex="0" role="button" aria-label="Открыть статью: ${escapeHtml(featured.title)}">
-            <div class="featured-image">
-                <div class="featured-image-content">
-                    <span class="featured-label">ИЗ АРХИВА · ${escapeHtml(categoryNames[featured.category] || categoryNames.other)}</span>
-                    <h1>${escapeHtml(featured.title)}</h1>
-                    <p class="featured-summary">${escapeHtml(getExcerpt(featured.content, 180))}</p>
-                    <div class="featured-meta">
-                        <span>${escapeHtml(featured.date || "Дата уточняется")}</span>
-                        <span class="meta-separator" aria-hidden="true"></span>
-                        <span>Корреспондент БФ</span>
-                        <span class="featured-read">ЧИТАТЬ МАТЕРИАЛ →</span>
-                    </div>
-                </div>
-            </div>
-        </article>`;
-
-    grid.innerHTML = allArticles.slice(1).map((article) => `
+    grid.innerHTML = allArticles.map((article) => `
         <article class="article-card" data-article-id="${escapeHtml(article.id)}" tabindex="0" role="button" aria-label="Открыть статью: ${escapeHtml(article.title)}">
             <span class="category-badge">${escapeHtml(categoryNames[article.category] || categoryNames.other)}</span>
             <h3>${escapeHtml(article.title)}</h3>
             <p class="excerpt">${escapeHtml(getExcerpt(article.content))}</p>
             <div class="meta"><span>${escapeHtml(article.date || "Дата уточняется")}</span><span>ЧИТАТЬ →</span></div>
         </article>`).join("");
-    latestSection.hidden = allArticles.length < 2;
 }
 
 function openArticle(articleId) {
