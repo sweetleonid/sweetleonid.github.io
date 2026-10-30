@@ -11,8 +11,34 @@ const seededArticles = Array.isArray(articles) ? articles : [];
 
 let activeCategory = "all";
 
+function getArticleTimestamp(date) {
+    const monthNumbers = {
+        "января": 0,
+        "февраля": 1,
+        "марта": 2,
+        "апреля": 3,
+        "мая": 4,
+        "июня": 5,
+        "июля": 6,
+        "августа": 7,
+        "сентября": 8,
+        "октября": 9,
+        "ноября": 10,
+        "декабря": 11
+    };
+    const match = String(date || "").trim().toLowerCase()
+        .match(/^(\d{1,2})\s+([а-яё]+)\s+(\d{4})$/);
+
+    if (!match || monthNumbers[match[2]] === undefined) return 0;
+
+    return Date.UTC(Number(match[3]), monthNumbers[match[2]], Number(match[1]));
+}
+
 function getArticles() {
-    return seededArticles;
+    return seededArticles
+        .map((article, index) => ({ article, index }))
+        .sort((a, b) => getArticleTimestamp(b.article.date) - getArticleTimestamp(a.article.date) || a.index - b.index)
+        .map(({ article }) => article);
 }
 
 function escapeHtml(value) {
@@ -36,8 +62,6 @@ function renderHome() {
     );
     const grid = document.getElementById("articles-grid");
 
-    if (!grid) return;
-
     if (!allArticles.length) {
         grid.innerHTML = '<p class="empty-state">В этой рубрике пока нет публикаций.</p>';
         return;
@@ -57,29 +81,20 @@ function renderCategories() {
         .filter((category) => categoryNames[category]);
     const categoryNav = document.getElementById("category-nav");
 
-    if (!categoryNav) return;
-
     categoryNav.innerHTML = categories.map((category) => `
         <button type="button" class="nav-link" data-category="${escapeHtml(category)}" aria-pressed="false">
             ${escapeHtml(categoryNames[category])}
         </button>`).join("");
-
-    const categoryButtons = document.querySelectorAll("[data-category]");
-    categoryButtons.forEach((button) => {
-        const isActive = button.dataset.category === activeCategory;
-        button.classList.toggle("active", isActive);
-        button.setAttribute("aria-pressed", String(isActive));
-    });
 }
 
 function selectCategory(category) {
-    activeCategory = category;
-    document.querySelectorAll("[data-category]").forEach((button) => {
-        const isActive = button.dataset.category === activeCategory;
-        button.classList.toggle("active", isActive);
-        button.setAttribute("aria-pressed", String(isActive));
-    });
-    renderHome();
+        activeCategory = category;
+        document.querySelectorAll("[data-category]").forEach((button) => {
+            const isActive = button.dataset.category === activeCategory;
+            button.classList.toggle("active", isActive);
+            button.setAttribute("aria-pressed", String(isActive));
+        });
+        renderHome();
 }
 
 function openArticle(articleId) {
@@ -87,8 +102,6 @@ function openArticle(articleId) {
     if (!article) return;
 
     const articleContainer = document.getElementById("article-full");
-    if (!articleContainer) return;
-
     articleContainer.innerHTML = `
         <div class="article-category">${escapeHtml(categoryNames[article.category] || categoryNames.other)}</div>
         <h1>${escapeHtml(article.title)}</h1>
@@ -102,8 +115,6 @@ function openArticle(articleId) {
 }
 
 function showPage(pageName) {
-    if (!pageName) return;
-
     document.querySelectorAll(".page").forEach((page) => page.classList.remove("active"));
     const page = document.getElementById(`${pageName}-page`);
     if (page) page.classList.add("active");
